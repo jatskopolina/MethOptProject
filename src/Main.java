@@ -7,14 +7,19 @@ public class Main {
     private static final int xSectors = 2; // the amount of sectors for x coordinate (approximation will be more accurate)
     private static final int ySectors = 2;
 
+    // the step to find the maximum diff in the diffModes.MAX_DIFF. Sorry, i cannot solve the f`(x) = const :(
+    private static final double STEP = 0.00001;
+
     private static final double ymax = 5;
     private static final double ymin = -5;
+
+    private static final diffModes mode = diffModes.INTEGRAL;
 
     private static double f(double x) { // function to approximate
         return Math.sin(x);
     }
 
-    private static double F(double x) { // depends on f!!!
+    private static double integral(double x) { // depends on f!!! it is F
         return -Math.cos(x);
     }
 
@@ -24,25 +29,47 @@ public class Main {
 
     private static final double xSectorLength = Math.abs(b.getX() - a.getX()) / xSectors;
     private static final double ySectorLength = Math.abs(ymax - ymin) / ySectors;
+
     private static Node[][] nodes;
 
+    private enum diffModes {
+        INTEGRAL, SUM_OF_DIFF_SQUARES, MAX_DIFF
+    }
+
     private static double integral(double x1, double x2) { // the area under the f from x1 to x2
-        return Math.abs(F(x2) - F(x1));
+        return Math.abs(integral(x2) - integral(x1));
+    }
+
+    /*
+     * get k coefficient in y = kx + b line by two points
+     */
+    private static double getK(Point p1,Point p2) {
+        // line function:
+        // y = ((x - x2)* (y2-y1)/(x2-x1)) + y2 = (y2-y1)/(x2-x1) * x - (y2-y1)/(x2-x1) * x2 + y2
+        return (p2.getY() - p1.getY()) / (p2.getX() - p1.getX());
+    }
+
+    /*
+     * get b coefficient in y = kx + b line by two points
+     */
+    private static double getB(Point p1, Point p2) {
+        // y = kx - kx2 + y2 = kx + y2 - kx2
+       return p2.getY() - getK(p1, p2) * p2.getX();
+    }
+
+    /*
+     * get result value of g (line by two points) of x
+     */
+    private static double g(double x, Point p1, Point p2) {
+        return getK(p1, p2) * x + getB(p1, p2);
     }
 
     /*
      * the area under the line from p1 to p2
      */
     private static double intergralOfLine(Point p1, Point p2) {
-
-        // line function:
-        // y = ((x - x2)* (y2-y1)/(x2-x1)) + y2
-
-        double k = (p2.getY() - p1.getY()) / (p2.getX() - p1.getX());
-
-        // y = kx - kx2 + y2
-
-        double b = p2.getY() - k * p2.getX();
+        double k = getK(p1,p2);
+        double b = getB(p1, p2);
 
         // y = kx + b
         // integral is (k * x * x /2.0 + b * x)
@@ -53,12 +80,30 @@ public class Main {
         );
     }
 
+    private static double getMaxDiff(Point p1, Point p2) {
+        double result = 0;
+        for (double i = p1.getX(); i < p2.getX(); i += STEP) {
+            double diffAtI = Math.abs(f(i) - g(i, p1, p2));
+            result = Math.max(diffAtI, result);
+        }
+        return result;
+
+    }
+
     /*
-     * the value we want - the difference in the area between the line and the function
+     * the value we want - the difference between the line and the function
      * (line from p1 to p2, function from x1 to x2)
      */
     private static double difference(Point p1, Point p2) {
-        return Math.abs(integral(p1.getX(), p2.getX()) - intergralOfLine(p1, p2));
+        switch (mode) {
+            case INTEGRAL:
+                return Math.abs(integral(p1.getX(), p2.getX()) - intergralOfLine(p1, p2));
+            case SUM_OF_DIFF_SQUARES:
+                return Math.pow(f(p2.getX()) - p2.getY(), 2);
+            case MAX_DIFF:
+            default:
+                return getMaxDiff(p1,p2);
+        }
     }
 
     /*
@@ -93,8 +138,11 @@ public class Main {
             for (int j = 0; j <= ySectors; j++) {
                 if (nodes[i][j] != null) {
                     double diff = difference(from.getCoordinate(), nodes[i][j].getCoordinate());
-                    if (from.getCost() + diff < nodes[i][j].getCost()) {
-                        nodes[i][j].setCost(from.getCost() + diff);
+                    double newPotentialCost = mode.equals(diffModes.MAX_DIFF) ?
+                            Math.max(from.getCost(), diff) :
+                            from.getCost() + diff;
+                    if (newPotentialCost < nodes[i][j].getCost()) {
+                        nodes[i][j].setCost(newPotentialCost);
                         nodes[i][j].setPrevious(from.getCoordinate());
                     }
                 }
