@@ -17,15 +17,7 @@ class Point {
         return x;
     }
 
-    void setX(double x) {
-        this.x = x;
-    }
-
     double getY() {
         return y;
-    }
-
-    void setY(double y) {
-        this.y = y;
     }
 }

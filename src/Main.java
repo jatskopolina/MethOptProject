@@ -4,16 +4,16 @@ public class Main {
     private static final Point a = new Point(0.0, f(0.0)); // left border point
     private static final Point b = new Point(Math.PI, f(Math.PI)); // right border point
 
-    private static final int xSectors = 2; // the amount of sectors for x coordinate (approximation will be more accurate)
-    private static final int ySectors = 2;
+    private static final int xSectors = 60; // the amount of sectors for x coordinate (approximation will be more accurate)
+    private static final int ySectors = 10;
 
     // the step to find the maximum diff in the diffModes.MAX_DIFF. Sorry, i cannot solve the f`(x) = const :(
-    private static final double STEP = 0.00001;
+    private static final double STEP = 0.001;
 
-    private static final double ymax = 5;
-    private static final double ymin = -5;
+    private static final double ymax = 1.5;
+    private static final double ymin = 0;
 
-    private static final diffModes mode = diffModes.INTEGRAL;
+    private static final diffModes mode = diffModes.SUM_OF_DIFF_SQUARES;
 
     private static double f(double x) { // function to approximate
         return Math.sin(x);
@@ -37,7 +37,7 @@ public class Main {
     }
 
     private static double integral(double x1, double x2) { // the area under the f from x1 to x2
-        return Math.abs(integral(x2) - integral(x1));
+        return integral(x2) - integral(x1);
     }
 
     /*
@@ -74,10 +74,8 @@ public class Main {
         // y = kx + b
         // integral is (k * x * x /2.0 + b * x)
 
-        return Math.abs(
-                (k * p2.getX() * p2.getX() /2.0 + b * p2.getX())
-                    - (k * p1.getX() * p1.getX() /2.0 + b * p1.getX())
-        );
+        return (k * p2.getX() * p2.getX() /2.0 + b * p2.getX())
+                    - (k * p1.getX() * p1.getX() /2.0 + b * p1.getX());
     }
 
     private static double getMaxDiff(Point p1, Point p2) {
@@ -150,16 +148,20 @@ public class Main {
         }
     }
 
-    private static void printThePathFromTheNode(Node current) {
-        if (current == null) {
-            return;
-        }
+    private static double round(double x) {
+        return Math.round(x * 100) / 100.0;
+    }
 
-        System.out.println(current.getCoordinate().getX() + " " + current.getCoordinate().getY());
-        printThePathFromTheNode(
-                nodes[getXIndex(current.getPrevious())]
-                        [getYIndex(current.getPrevious())]
-        );
+    private static void printThePathFromTheNode(Node current) {
+        System.out.println(round(current.getCoordinate().getX()) + " " + round(current.getCoordinate().getY()));
+        int prevXIndex = getXIndex(current.getPrevious());
+        int prevYIndex = getYIndex(current.getPrevious());
+        if (prevXIndex != -1) {
+            printThePathFromTheNode(nodes[prevXIndex][prevYIndex]);
+        } else {
+            System.out.println(round(a.getX()) + " " + round(a.getY()));
+        }
+        return;
     }
 
     public static void main (String args[]) {
@@ -177,5 +179,10 @@ public class Main {
 
         // print from the "b" node
         printThePathFromTheNode(nodes[xSectors - 1][0]);
+
+        /*System.out.println("-----------------------");
+        for (BigDecimal i = 0; i < 3.14; i+=0.05) {
+            System.out.println(round(i) + " " + round(f(i)));
+        }*/
     }
 }

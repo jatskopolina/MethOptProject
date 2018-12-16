@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 class Node {
     private Point coordinate; //coordinate of the node
     private double cost; //the cost of the path to the node from a
@@ -13,10 +11,6 @@ class Node {
 
     Point getCoordinate() {
         return coordinate;
-    }
-
-    void setCoordinate(Point coordinate) {
-        this.coordinate = coordinate;
     }
 
     double getCost() {
