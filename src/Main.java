@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Random;
+
 public class Main {
 
     // -------- parameters -------------
@@ -34,6 +37,14 @@ public class Main {
 
     private enum diffModes {
         INTEGRAL, SUM_OF_DIFF_SQUARES, MAX_DIFF
+    }
+
+    private static final ArrayList <Double> pointsForSumOfDiffSquares = new ArrayList<>();
+    static {
+        Random r = new Random();
+        for(int i = 0; i < 10; i++) {
+            pointsForSumOfDiffSquares.add(a.getX() + r.nextDouble() * (b.getX() - a.getX()));
+        }
     }
 
     private static double integral(double x1, double x2) { // the area under the f from x1 to x2
@@ -88,6 +99,20 @@ public class Main {
 
     }
 
+    private static double getSumOfDiffSquares(Point p1, Point p2) {
+        double sum = 0;
+        for(int i = 0; i < pointsForSumOfDiffSquares.size(); i++) {
+            if(pointsForSumOfDiffSquares.get(i) > p1.getX() && pointsForSumOfDiffSquares.get(i) <= p2.getX()) {
+                sum += Math.pow(
+                        f(pointsForSumOfDiffSquares.get(i)) -
+                                g(pointsForSumOfDiffSquares.get(i), p1, p2),
+                        2
+                );
+            }
+        }
+        return sum;
+    }
+
     /*
      * the value we want - the difference between the line and the function
      * (line from p1 to p2, function from x1 to x2)
@@ -97,10 +122,10 @@ public class Main {
             case INTEGRAL:
                 return Math.abs(integral(p1.getX(), p2.getX()) - intergralOfLine(p1, p2));
             case SUM_OF_DIFF_SQUARES:
-                return Math.pow(f(p2.getX()) - p2.getY(), 2);
+                return getSumOfDiffSquares(p1, p2);
             case MAX_DIFF:
             default:
-                return getMaxDiff(p1,p2);
+                return getMaxDiff(p1, p2);
         }
     }
 
