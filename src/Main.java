@@ -1,14 +1,14 @@
 public class Main {
 
     // -------- parameters -------------
-    private static Point a = new Point(0.0, f(0.0)); // left border point
-    private static Point b = new Point(Math.PI, f(Math.PI)); // right border point
+    private static final Point a = new Point(0.0, f(0.0)); // left border point
+    private static final Point b = new Point(Math.PI, f(Math.PI)); // right border point
 
-    private static int xSectors = 2; // the amount of sectors for x coordinate (approximation will be more accurate)
-    private static int ySectors = 2;
+    private static final int xSectors = 2; // the amount of sectors for x coordinate (approximation will be more accurate)
+    private static final int ySectors = 2;
 
-    private static double ymax = 5;
-    private static double ymin = -5;
+    private static final double ymax = 5;
+    private static final double ymin = -5;
 
     private static double f(double x) { // function to approximate
         return Math.sin(x);
@@ -22,8 +22,9 @@ public class Main {
 
 
 
-    private static double xSectorLength = Math.abs(b.getX() - a.getX()) / xSectors;
-    private static double ySectorLength = Math.abs(ymax - ymin) / ySectors;
+    private static final double xSectorLength = Math.abs(b.getX() - a.getX()) / xSectors;
+    private static final double ySectorLength = Math.abs(ymax - ymin) / ySectors;
+    private static Node[][] nodes;
 
     private static double integral(double x1, double x2) { // the area under the f from x1 to x2
         return Math.abs(F(x2) - F(x1));
@@ -53,8 +54,8 @@ public class Main {
     }
 
     /*
-     * the value we want - the difference between the line and the function
-     * line from (x1;y1) to (x2;y2), function from x1 to x2
+     * the value we want - the difference in the area between the line and the function
+     * (line from p1 to p2, function from x1 to x2)
      */
     private static double difference(Point p1, Point p2) {
         return Math.abs(integral(p1.getX(), p2.getX()) - intergralOfLine(p1, p2));
@@ -65,10 +66,10 @@ public class Main {
      */
     private static Node[][] getNodesArray() {
         Node[][] arr = new Node [xSectors] [ySectors + 1];
-        for(int i = 1; i < xSectors; i++) { // x
+        for(int i = 0; i <= xSectors - 2; i++) { // x
             for (int j = 0; j <= ySectors; j++) { // y
-                arr [i - 1][j] = new Node(
-                        new Point(a.getX() + i * xSectorLength, ymin + j * ySectorLength),
+                arr [i][j] = new Node(
+                        new Point(a.getX() + (i + 1) * xSectorLength, ymin + j * ySectorLength),
                         Double.MAX_VALUE,
                         new Point()
                 );
@@ -78,8 +79,24 @@ public class Main {
         return arr;
     }
 
+    private static void refreshNodesInfo(Node from) {
+        int begXNumber = (int) ((from.getCoordinate().getX() - a.getX()) / xSectorLength); // it is "from" x number in the array + 1
+        for (int i = begXNumber; i < xSectors; i++) {
+            for (int j = 0; j <= ySectors; j++) {
+                if (nodes[i][j] != null) {
+                    double diff = difference(from.getCoordinate(), nodes[i][j].getCoordinate());
+                    if (from.getCost() + diff < nodes[i][j].getCost()) {
+                        nodes[i][j].setCost(from.getCost() + diff);
+                        nodes[i][j].setPrevious(from.getCoordinate());
+                    }
+                }
+            }
+        }
+    }
+
     public static void main (String args[]) {
         // we start at the a
-        Node[][] nodes = getNodesArray();
+        nodes = getNodesArray();
+        refreshNodesInfo(new Node(a, 0, null));
     }
 }
