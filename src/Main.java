@@ -79,8 +79,16 @@ public class Main {
         return arr;
     }
 
+    private static int getXIndex(Point p) {
+        return (int) ((p.getX() - a.getX()) / xSectorLength) - 1;
+    }
+
+    private static int getYIndex(Point p) {
+        return (int) ((p.getY() - ymin) / ySectorLength);
+    }
+
     private static void refreshNodesInfo(Node from) {
-        int begXNumber = (int) ((from.getCoordinate().getX() - a.getX()) / xSectorLength); // it is "from" x number in the array + 1
+        int begXNumber = getXIndex(from.getCoordinate()) + 1;
         for (int i = begXNumber; i < xSectors; i++) {
             for (int j = 0; j <= ySectors; j++) {
                 if (nodes[i][j] != null) {
@@ -94,9 +102,32 @@ public class Main {
         }
     }
 
+    private static void printThePathFromTheNode(Node current) {
+        if (current == null) {
+            return;
+        }
+
+        System.out.println(current.getCoordinate().getX() + " " + current.getCoordinate().getY());
+        printThePathFromTheNode(
+                nodes[getXIndex(current.getPrevious())]
+                        [getYIndex(current.getPrevious())]
+        );
+    }
+
     public static void main (String args[]) {
-        // we start at the a
         nodes = getNodesArray();
+
+        // we start at the a
         refreshNodesInfo(new Node(a, 0, null));
+
+        for (int i = 0; i < xSectors; i++) {
+            for (int j = 0; j <= ySectors; j++ ) {
+                if(nodes[i][j] != null)
+                    refreshNodesInfo(nodes[i][j]);
+            }
+        }
+
+        // print from the "b" node
+        printThePathFromTheNode(nodes[xSectors - 1][0]);
     }
 }
