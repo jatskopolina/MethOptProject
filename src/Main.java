@@ -8,15 +8,17 @@ public class Main {
     private static final Point b = new Point(Math.PI, f(Math.PI)); // right border point
 
     private static final int xSectors = 60; // the amount of sectors for x coordinate (approximation will be more accurate)
-    private static final int ySectors = 10;
+    private static final int ySectors = 60;
 
-    // the step to find the maximum diff in the diffModes.MAX_DIFF. Sorry, i cannot solve the f`(x) = const :(
+    // the step to find the maximum diff in the diffModes.MAX_DIFF
     private static final double STEP = 0.001;
+
+    private static final int amountOfPointsForSquares = 1000;
 
     private static final double ymax = 1.5;
     private static final double ymin = 0;
 
-    private static final diffModes mode = diffModes.SUM_OF_DIFF_SQUARES;
+    private static final diffModes mode = diffModes.MAX_DIFF;
 
     private static double f(double x) { // function to approximate
         return Math.sin(x);
@@ -42,8 +44,12 @@ public class Main {
     private static final ArrayList <Double> pointsForSumOfDiffSquares = new ArrayList<>();
     static {
         Random r = new Random();
-        for(int i = 0; i < 10; i++) {
-            pointsForSumOfDiffSquares.add(a.getX() + r.nextDouble() * (b.getX() - a.getX()));
+        double half = 0.5 * (b.getX() - a.getX());
+        for(int i = 0; i < amountOfPointsForSquares; i++) {
+            pointsForSumOfDiffSquares.add(
+            r.nextGaussian() /* the num from -1 to 1 */ * half /*make it from - half to half*/
+                    + (a.getX() + half) // the center between b and a
+            );
         }
     }
 
@@ -205,9 +211,10 @@ public class Main {
         // print from the "b" node
         printThePathFromTheNode(nodes[xSectors - 1][0]);
 
-        /*System.out.println("-----------------------");
-        for (BigDecimal i = 0; i < 3.14; i+=0.05) {
+       System.out.println("-----------------------");
+        // points to draw the function
+        for (double i = a.getX(); i <= b.getX(); i+=0.05) {
             System.out.println(round(i) + " " + round(f(i)));
-        }*/
+        }
     }
 }
